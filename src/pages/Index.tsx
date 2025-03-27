@@ -88,20 +88,25 @@ const Index = () => {
           const totalCalories = mealsData.reduce((sum, meal) => sum + meal.calories, 0);
           const avgHealthScore = mealsData.reduce((sum, meal) => sum + meal.health_score, 0) / mealsData.length;
           
-          // Properly handle blood sugar impact data with type checking
+          // Safely process blood sugar impact data
           const avgBloodSugar = mealsData.reduce((sum, meal) => {
             if (meal.blood_sugar_impact && Array.isArray(meal.blood_sugar_impact)) {
-              // Safely handle the JSON data by checking each item has the expected structure
-              const validPoints = meal.blood_sugar_impact.filter(
-                (point): point is BloodSugarPoint => 
+              // Extract blood sugar levels from the array with proper type checking
+              const validPoints: number[] = [];
+              
+              for (const point of meal.blood_sugar_impact) {
+                if (
                   typeof point === 'object' && 
                   point !== null && 
                   'level' in point && 
                   typeof point.level === 'number'
-              );
+                ) {
+                  validPoints.push(point.level);
+                }
+              }
               
               if (validPoints.length > 0) {
-                const mealAvg = validPoints.reduce((s, point) => s + point.level, 0) / validPoints.length;
+                const mealAvg = validPoints.reduce((s, level) => s + level, 0) / validPoints.length;
                 return sum + mealAvg;
               }
             }

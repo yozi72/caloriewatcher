@@ -15,6 +15,8 @@ export interface FoodAnalysisResult {
     time: string;
     level: number;
   }[];
+  explanation?: string;
+  advice?: string;
 }
 
 interface FoodAnalysisProps {
@@ -24,8 +26,8 @@ interface FoodAnalysisProps {
 
 const FoodAnalysis: React.FC<FoodAnalysisProps> = ({ result, loading = false }) => {
   const getHealthScoreColor = (score: number) => {
-    if (score >= 8) return 'bg-health-green';
-    if (score >= 5) return 'bg-health-yellow';
+    if (score >= 80) return 'bg-health-green';
+    if (score >= 70) return 'bg-health-yellow';
     return 'bg-health-red';
   };
 
@@ -80,11 +82,21 @@ const FoodAnalysis: React.FC<FoodAnalysisProps> = ({ result, loading = false }) 
         <NutritionCard
           title="Health Score"
           value={result.healthScore}
-          unit="/10"
+          unit="/100"
           color={getHealthScoreColor(result.healthScore)}
-          icon={<ChartBar className="w-5 h-5" color={result.healthScore >= 8 ? "#10B981" : result.healthScore >= 5 ? "#FBBF24" : "#EF4444"} />}
+          icon={<ChartBar className="w-5 h-5" color={result.healthScore >= 80 ? "#10B981" : result.healthScore >= 70 ? "#FBBF24" : "#EF4444"} />}
         />
       </div>
+      
+      {result.explanation && (
+        <div className="bg-white rounded-xl p-4 shadow-subtle">
+          <h3 className="text-lg font-medium mb-2">Food Analysis</h3>
+          <p className="text-sm text-gray-700">{result.explanation}</p>
+          {result.advice && (
+            <p className="text-sm text-gray-700 mt-2 font-medium">{result.advice}</p>
+          )}
+        </div>
+      )}
       
       <div className="bg-white rounded-xl p-4 shadow-subtle">
         <h3 className="text-lg font-medium mb-2">Blood Sugar Impact</h3>

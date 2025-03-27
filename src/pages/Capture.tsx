@@ -16,27 +16,29 @@ const Capture = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   
-  // TODO: In a real app, this would call an AI service
+  // This simulates the AI food analysis but in a real app would call the OpenAI API
   const analyzeFoodImage = async (imageData: string) => {
     setIsAnalyzing(true);
     
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Mock result - in a real app this would come from OpenAI or Gemini API
+    // Mock result with format matching the OpenAI prompt response
     const mockResult: FoodAnalysisResult = {
       foodName: 'Grilled Salmon with Vegetables',
       calories: 420,
       protein: 35,
       carbs: 18,
       fat: 22,
-      healthScore: 8.5,
+      healthScore: 85, // Updated to 50-100 scale
       bloodSugarImpact: [
         { time: '0 min', level: 85 },
         { time: '30 min', level: 110 },
         { time: '60 min', level: 125 },
         { time: '90 min', level: 105 },
-      ]
+      ],
+      explanation: "Grilled salmon with vegetables is rich in omega-3 fatty acids and fiber. The protein content helps stabilize blood sugar levels.",
+      advice: "Recommend consuming 2-3 times per week for optimal health benefits."
     };
     
     setAnalysisResult(mockResult);
@@ -105,7 +107,7 @@ const Capture = () => {
           protein: analysisResult.protein,
           carbs: analysisResult.carbs,
           fat: analysisResult.fat,
-          health_score: Math.round(analysisResult.healthScore * 10), // Convert to 50-100 scale
+          health_score: analysisResult.healthScore, // Already on 50-100 scale
           blood_sugar_impact: analysisResult.bloodSugarImpact,
         });
       

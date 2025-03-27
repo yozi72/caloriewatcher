@@ -31,14 +31,22 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 const BloodSugarChart: React.FC<BloodSugarChartProps> = ({ data, className = '' }) => {
-  // Reference ranges
+  // Reference ranges for blood sugar
   const normalRange = { min: 70, max: 140 };
+  
+  // Make sure we have the time points in correct order
+  // Sort data by numeric value of time (extracting minutes)
+  const sortedData = [...data].sort((a, b) => {
+    const timeA = parseInt(a.time.split(' ')[0]) || 0;
+    const timeB = parseInt(b.time.split(' ')[0]) || 0;
+    return timeA - timeB;
+  });
 
   return (
     <div className={`w-full h-60 ${className}`}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
-          data={data}
+          data={sortedData}
           margin={{ top: 10, right: 10, left: 0, bottom: 10 }}
         >
           <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
@@ -49,7 +57,7 @@ const BloodSugarChart: React.FC<BloodSugarChartProps> = ({ data, className = '' 
             axisLine={false}
           />
           <YAxis 
-            domain={[0, 200]} 
+            domain={[60, 220]} // Match the range from the prompt
             tick={{ fontSize: 10 }}
             tickLine={false}
             axisLine={false}
