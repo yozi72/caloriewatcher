@@ -9,7 +9,96 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      meals: {
+        Row: {
+          blood_sugar_impact: Json | null
+          calories: number
+          carbs: number | null
+          created_at: string
+          fat: number | null
+          health_score: number | null
+          id: string
+          image_url: string | null
+          name: string
+          protein: number | null
+          user_id: string
+        }
+        Insert: {
+          blood_sugar_impact?: Json | null
+          calories: number
+          carbs?: number | null
+          created_at?: string
+          fat?: number | null
+          health_score?: number | null
+          id?: string
+          image_url?: string | null
+          name: string
+          protein?: number | null
+          user_id: string
+        }
+        Update: {
+          blood_sugar_impact?: Json | null
+          calories?: number
+          carbs?: number | null
+          created_at?: string
+          fat?: number | null
+          health_score?: number | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          protein?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          age: number | null
+          created_at: string
+          daily_calorie_goal: number | null
+          exercise_frequency: number | null
+          first_name: string | null
+          gender: string | null
+          height: number | null
+          id: string
+          last_name: string | null
+          preferred_workouts: string[] | null
+          updated_at: string
+          weight: number | null
+          weight_goal: number | null
+        }
+        Insert: {
+          age?: number | null
+          created_at?: string
+          daily_calorie_goal?: number | null
+          exercise_frequency?: number | null
+          first_name?: string | null
+          gender?: string | null
+          height?: number | null
+          id: string
+          last_name?: string | null
+          preferred_workouts?: string[] | null
+          updated_at?: string
+          weight?: number | null
+          weight_goal?: number | null
+        }
+        Update: {
+          age?: number | null
+          created_at?: string
+          daily_calorie_goal?: number | null
+          exercise_frequency?: number | null
+          first_name?: string | null
+          gender?: string | null
+          height?: number | null
+          id?: string
+          last_name?: string | null
+          preferred_workouts?: string[] | null
+          updated_at?: string
+          weight?: number | null
+          weight_goal?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
