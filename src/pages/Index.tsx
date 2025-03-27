@@ -25,6 +25,12 @@ interface WeeklyData {
   healthScore: number;
 }
 
+// Define a type for the blood sugar impact data
+interface BloodSugarPoint {
+  time: string;
+  level: number;
+}
+
 const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 const Index = () => {
@@ -81,13 +87,26 @@ const Index = () => {
         if (mealsData && mealsData.length > 0) {
           const totalCalories = mealsData.reduce((sum, meal) => sum + meal.calories, 0);
           const avgHealthScore = mealsData.reduce((sum, meal) => sum + meal.health_score, 0) / mealsData.length;
+          
+          // Properly handle blood sugar impact data with type checking
           const avgBloodSugar = mealsData.reduce((sum, meal) => {
             if (meal.blood_sugar_impact && Array.isArray(meal.blood_sugar_impact)) {
-              const mealAvg = meal.blood_sugar_impact.reduce((s, point) => s + point.level, 0) / meal.blood_sugar_impact.length;
-              return sum + mealAvg;
+              // Safely handle the JSON data by checking each item has the expected structure
+              const validPoints = meal.blood_sugar_impact.filter(
+                (point): point is BloodSugarPoint => 
+                  typeof point === 'object' && 
+                  point !== null && 
+                  'level' in point && 
+                  typeof point.level === 'number'
+              );
+              
+              if (validPoints.length > 0) {
+                const mealAvg = validPoints.reduce((s, point) => s + point.level, 0) / validPoints.length;
+                return sum + mealAvg;
+              }
             }
             return sum;
-          }, 0) / mealsData.length;
+          }, 0) / (mealsData.length || 1); // Avoid division by zero
 
           setDailyStats({
             calories: totalCalories,
