@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -18,11 +17,13 @@ import {
 } from '@/components/ui/form';
 
 const loginSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email" }),
+  email: z.string().email({ message: "Please enter a valid email address" }).min(1, { message: "Email is required" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
 });
 
-const registerSchema = loginSchema.extend({
+const registerSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address" }).min(1, { message: "Email is required" }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   firstName: z.string().min(1, { message: "First name is required" }),
   lastName: z.string().min(1, { message: "Last name is required" }),
   confirmPassword: z.string().min(6, { message: "Password must be at least 6 characters" }),
@@ -96,7 +97,12 @@ const Auth = () => {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="you@example.com" {...field} />
+                      <Input 
+                        placeholder="you@example.com" 
+                        type="email" 
+                        {...field} 
+                        autoComplete="email"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -109,7 +115,12 @@ const Auth = () => {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
+                      <Input 
+                        type="password" 
+                        placeholder="••••••••" 
+                        {...field} 
+                        autoComplete="current-password"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -158,7 +169,12 @@ const Auth = () => {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="you@example.com" {...field} />
+                      <Input 
+                        placeholder="you@example.com" 
+                        type="email" 
+                        {...field} 
+                        autoComplete="email"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -171,7 +187,12 @@ const Auth = () => {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
+                      <Input 
+                        type="password" 
+                        placeholder="••••••••" 
+                        {...field} 
+                        autoComplete="new-password"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -184,7 +205,12 @@ const Auth = () => {
                   <FormItem>
                     <FormLabel>Confirm Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
+                      <Input 
+                        type="password" 
+                        placeholder="••••••••" 
+                        {...field} 
+                        autoComplete="new-password"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
