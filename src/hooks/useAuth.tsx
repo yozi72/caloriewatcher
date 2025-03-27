@@ -7,8 +7,8 @@ import { toast } from '@/hooks/use-toast';
 interface AuthContextProps {
   session: Session | null;
   user: User | null;
-  signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   loading: boolean;
 }
@@ -60,13 +60,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         title: "Account created",
         description: "Please check your email to confirm your account",
       });
+      return { error: null };
     } catch (error: any) {
+      console.error("Signup error:", error.message);
       toast({
         title: "Error signing up",
         description: error.message,
         variant: "destructive",
       });
-      throw error;
+      return { error };
     } finally {
       setLoading(false);
     }
@@ -86,13 +88,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         title: "Welcome back!",
         description: "You've successfully signed in",
       });
+      return { error: null };
     } catch (error: any) {
+      console.error("Signin error:", error.message);
       toast({
         title: "Error signing in",
         description: error.message,
         variant: "destructive",
       });
-      throw error;
+      return { error };
     } finally {
       setLoading(false);
     }

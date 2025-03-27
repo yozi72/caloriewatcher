@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Input } from '@/components/ui/input';
@@ -34,6 +33,7 @@ const registerSchema = z.object({
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [formError, setFormError] = useState<string | null>(null);
   const { signIn, signUp, user, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -57,20 +57,32 @@ const Auth = () => {
   });
 
   const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
+    setFormError(null);
     try {
-      await signIn(values.email, values.password);
-      navigate('/');
-    } catch (error) {
+      const { error } = await signIn(values.email, values.password);
+      if (error) {
+        setFormError(error.message);
+      } else {
+        navigate('/');
+      }
+    } catch (error: any) {
       console.error("Login error:", error);
+      setFormError(error.message || "An unexpected error occurred");
     }
   };
 
   const onRegisterSubmit = async (values: z.infer<typeof registerSchema>) => {
+    setFormError(null);
     try {
-      await signUp(values.email, values.password, values.firstName, values.lastName);
-      setIsLogin(true);
-    } catch (error) {
+      const { error } = await signUp(values.email, values.password, values.firstName, values.lastName);
+      if (error) {
+        setFormError(error.message);
+      } else {
+        setIsLogin(true);
+      }
+    } catch (error: any) {
       console.error("Register error:", error);
+      setFormError(error.message || "An unexpected error occurred");
     }
   };
 
@@ -86,6 +98,12 @@ const Auth = () => {
           <h1 className="text-2xl font-bold text-gray-900 mb-1">HealthHub</h1>
           <p className="text-gray-500">{isLogin ? "Sign in to your account" : "Create your account"}</p>
         </div>
+
+        {formError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+            {formError}
+          </div>
+        )}
 
         {isLogin ? (
           <Form {...loginForm}>
@@ -225,7 +243,10 @@ const Auth = () => {
 
         <div className="text-center pt-4">
           <button
-            onClick={() => setIsLogin(!isLogin)}
+            onClick={() => {
+              setIsLogin(!isLogin);
+              setFormError(null);
+            }}
             className="text-sm text-health-blue hover:underline"
           >
             {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
