@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -16,12 +17,12 @@ import {
 } from '@/components/ui/form';
 
 const loginSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }).min(1, { message: "Email is required" }),
+  email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
 });
 
 const registerSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }).min(1, { message: "Email is required" }),
+  email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   firstName: z.string().min(1, { message: "First name is required" }),
   lastName: z.string().min(1, { message: "Last name is required" }),
@@ -43,6 +44,7 @@ const Auth = () => {
       email: "",
       password: "",
     },
+    mode: "onSubmit", // This ensures validation runs only on form submission
   });
 
   const registerForm = useForm<z.infer<typeof registerSchema>>({
@@ -54,7 +56,18 @@ const Auth = () => {
       firstName: "",
       lastName: "",
     },
+    mode: "onSubmit", // This ensures validation runs only on form submission
   });
+
+  // Reset form errors when switching between login and register
+  useEffect(() => {
+    setFormError(null);
+    if (isLogin) {
+      loginForm.reset();
+    } else {
+      registerForm.reset();
+    }
+  }, [isLogin]);
 
   const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
     setFormError(null);
@@ -107,7 +120,7 @@ const Auth = () => {
 
         {isLogin ? (
           <Form {...loginForm}>
-            <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+            <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4" noValidate>
               <FormField
                 control={loginForm.control}
                 name="email"
@@ -151,7 +164,7 @@ const Auth = () => {
           </Form>
         ) : (
           <Form {...registerForm}>
-            <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
+            <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4" noValidate>
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={registerForm.control}
