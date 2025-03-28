@@ -1,6 +1,6 @@
 
-import React, { useState, useRef } from 'react';
-import { Camera } from 'lucide-react';
+import React, { useState, useRef, ChangeEvent } from 'react';
+import { Camera, Upload } from 'lucide-react';
 
 interface FoodCaptureProps {
   onCapture: (image: string) => void;
@@ -11,6 +11,7 @@ const FoodCapture: React.FC<FoodCaptureProps> = ({ onCapture }) => {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const startCamera = async () => {
     try {
@@ -60,6 +61,28 @@ const FoodCapture: React.FC<FoodCaptureProps> = ({ onCapture }) => {
     startCamera();
   };
 
+  const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      
+      reader.onload = (event) => {
+        if (event.target && typeof event.target.result === 'string') {
+          setCapturedImage(event.target.result);
+          onCapture(event.target.result);
+        }
+      };
+      
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
   return (
     <div className="relative rounded-2xl overflow-hidden shadow-elevated">
       {/* Overlay instruction */}
@@ -90,19 +113,42 @@ const FoodCapture: React.FC<FoodCaptureProps> = ({ onCapture }) => {
           />
         )}
         
+        {!isCapturing && !capturedImage && (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-gray-400">Ready to capture or upload your meal</p>
+          </div>
+        )}
+        
         <canvas ref={canvasRef} className="hidden" />
+        <input 
+          type="file" 
+          ref={fileInputRef}
+          className="hidden" 
+          accept="image/*"
+          onChange={handleFileUpload}
+        />
       </div>
       
       {/* Camera controls */}
       <div className="absolute bottom-4 left-0 right-0 flex justify-center">
         {!isCapturing && !capturedImage ? (
-          <button
-            onClick={startCamera}
-            className="glass py-3 px-6 rounded-full flex items-center space-x-2 shadow-elevated"
-          >
-            <Camera className="w-5 h-5 text-health-blue" />
-            <span className="font-medium">Take a photo</span>
-          </button>
+          <div className="flex space-x-4">
+            <button
+              onClick={startCamera}
+              className="glass py-3 px-6 rounded-full flex items-center space-x-2 shadow-elevated"
+            >
+              <Camera className="w-5 h-5 text-health-blue" />
+              <span className="font-medium">Take a photo</span>
+            </button>
+            
+            <button
+              onClick={triggerFileInput}
+              className="glass py-3 px-6 rounded-full flex items-center space-x-2 shadow-elevated"
+            >
+              <Upload className="w-5 h-5 text-health-blue" />
+              <span className="font-medium">Upload photo</span>
+            </button>
+          </div>
         ) : isCapturing && !capturedImage ? (
           <button
             onClick={captureImage}
