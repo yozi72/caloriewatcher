@@ -9,12 +9,14 @@ interface FoodCaptureProps {
 const FoodCapture: React.FC<FoodCaptureProps> = ({ onCapture }) => {
   const [isCapturing, setIsCapturing] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const startCamera = async () => {
     try {
+      setCameraError(null);
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: 'environment' }
       });
@@ -23,8 +25,9 @@ const FoodCapture: React.FC<FoodCaptureProps> = ({ onCapture }) => {
         videoRef.current.srcObject = stream;
         setIsCapturing(true);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error accessing camera:", err);
+      setCameraError(err.message || "Could not access camera. Please check permissions.");
     }
   };
 
@@ -114,8 +117,15 @@ const FoodCapture: React.FC<FoodCaptureProps> = ({ onCapture }) => {
         )}
         
         {!isCapturing && !capturedImage && (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-gray-400">Ready to capture or upload your meal</p>
+          <div className="flex flex-col items-center justify-center h-full p-4">
+            {cameraError ? (
+              <>
+                <p className="text-red-500 mb-2 text-center">{cameraError}</p>
+                <p className="text-gray-400 text-center">You can still upload a photo</p>
+              </>
+            ) : (
+              <p className="text-gray-400">Ready to capture or upload your meal</p>
+            )}
           </div>
         )}
         
