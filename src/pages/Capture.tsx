@@ -16,29 +16,51 @@ const Capture = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   
-  // Generate a simple hash from a string
-  const simpleHash = (str: string): number => {
-    let hash = 0;
-    if (str.length === 0) return hash;
-    for (let i = 0; i < 100; i++) { // Only use a portion of the string for performance
-      const char = str.charCodeAt(i % str.length);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
-    return Math.abs(hash);
-  };
-  
-  // This simulates the AI food analysis but with varying results based on the image
+  // Analyze food image using OpenAI via Supabase Edge Function
   const analyzeFoodImage = async (imageData: string) => {
     setIsAnalyzing(true);
     
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      // Call our Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('analyze-food', {
+        body: { imageData },
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      setAnalysisResult(data);
+      toast({
+        title: "Analysis Complete",
+        description: "Your meal has been analyzed successfully",
+      });
+    } catch (error: any) {
+      console.error("Error analyzing food:", error);
+      toast({
+        title: "Analysis Failed",
+        description: error.message || "Could not analyze the food image",
+        variant: "destructive",
+      });
+      
+      // Fallback to simulated analysis if AI analysis fails
+      fallbackAnalysis(imageData);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+  
+  // Fallback analysis when AI analysis fails
+  const fallbackAnalysis = (imageData: string) => {
+    // Generate a simple hash from the image to create consistent variations
+    let hash = 0;
+    for (let i = 0; i < 100; i++) {
+      const char = imageData.charCodeAt(i % imageData.length);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    hash = Math.abs(hash);
     
-    // Generate a hash from the image data to create consistent but different results
-    const hash = simpleHash(imageData);
-    
-    // Use the hash to create variations in the results
     const foodTypes = [
       'Grilled Salmon with Vegetables',
       'Chicken Caesar Salad',
@@ -50,28 +72,12 @@ const Capture = () => {
     ];
     
     const foodIndex = hash % foodTypes.length;
-    
-    // Create variations in nutritional values
     const baseCalories = 300 + (hash % 400);
     const baseProtein = 20 + (hash % 30);
     const baseCarbs = 15 + (hash % 40);
     const baseFat = 10 + (hash % 25);
-    const baseHealthScore = 65 + (hash % 31); // 65-95 range
+    const baseHealthScore = 65 + (hash % 31);
     
-    // Generate varying blood sugar impact
-    const generateBloodSugar = () => {
-      const startLevel = 80 + (hash % 10);
-      const peakOffset = 20 + (hash % 40);
-      
-      return [
-        { time: '0 min', level: startLevel },
-        { time: '30 min', level: startLevel + peakOffset / 2 },
-        { time: '60 min', level: startLevel + peakOffset },
-        { time: '90 min', level: startLevel + (peakOffset / 2) },
-      ];
-    };
-    
-    // Generate food-specific explanation
     const explanations = [
       "Rich in omega-3 fatty acids and protein. The vegetables provide essential fiber and vitamins.",
       "A good source of lean protein. Watch the dressing as it may contain hidden sugars.",
@@ -82,6 +88,9 @@ const Capture = () => {
       "Excellent source of probiotics and calcium. The berries add antioxidants and natural sweetness."
     ];
     
+    const startLevel = 80 + (hash % 10);
+    const peakOffset = 20 + (hash % 40);
+    
     const mockResult: FoodAnalysisResult = {
       foodName: foodTypes[foodIndex],
       calories: baseCalories,
@@ -89,17 +98,22 @@ const Capture = () => {
       carbs: baseCarbs,
       fat: baseFat,
       healthScore: baseHealthScore,
-      bloodSugarImpact: generateBloodSugar(),
+      bloodSugarImpact: [
+        { time: '0 min', level: startLevel },
+        { time: '30 min', level: startLevel + peakOffset / 2 },
+        { time: '60 min', level: startLevel + peakOffset },
+        { time: '90 min', level: startLevel + (peakOffset / 2) },
+      ],
       explanation: explanations[foodIndex],
       advice: "Consider portion control and pairing with a balanced mix of other food groups."
     };
     
     setAnalysisResult(mockResult);
-    setIsAnalyzing(false);
     
     toast({
-      title: "Analysis Complete",
-      description: "Your meal has been analyzed successfully",
+      title: "Using Simulated Analysis",
+      description: "AI analysis unavailable. Using simulated results instead.",
+      variant: "warning",
     });
   };
   

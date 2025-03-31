@@ -1,0 +1,8 @@
+
+project_id = ""
+
+[config]
+runtime = "deno"
+memory = 256
+max_duration = 60000 # 60 seconds because image analysis might take time
+env_vars = ["OPENAI_API_KEY"]
