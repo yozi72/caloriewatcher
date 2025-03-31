@@ -27,7 +27,7 @@ serve(async (req) => {
 
     console.log("Sending image to OpenAI for analysis...")
     
-    // Send the image to OpenAI for analysis
+    // Send the image to OpenAI for analysis - Fix the headers issue
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -57,9 +57,7 @@ serve(async (req) => {
           content: [
             {
               type: "image_url",
-              image_url: {
-                url: imageData
-              }
+              image_url: imageData
             },
             { 
               type: "text", 
