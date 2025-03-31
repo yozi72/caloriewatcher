@@ -1,90 +1,80 @@
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { LoginForm } from '@/components/auth/LoginForm';
-import { RegisterForm } from '@/components/auth/RegisterForm';
-import { AuthLayout } from '@/components/auth/AuthLayout';
+import { useForm } from 'react-hook-form';
+
+import AuthLayout from '@/components/auth/AuthLayout';
+import LoginForm from '@/components/auth/LoginForm';
+import RegisterForm from '@/components/auth/RegisterForm';
+import { useAuth } from '@/hooks/useAuth';
+
+// Define the schemas for login and register
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+});
+
+const registerSchema = z.object({
+  firstName: z.string().min(2),
+  lastName: z.string().min(2),
+  email: z.string().email(),
+  password: z.string().min(6),
+});
+
+// TypeScript types for form data
+type LoginValues = z.infer<typeof loginSchema>;
+type RegisterValues = z.infer<typeof registerSchema>;
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [formError, setFormError] = useState<string | null>(null);
-  const { signIn, signUp, user, loading } = useAuth();
+  const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
 
-  // Reset form errors when switching between login and register
+  // Initialize the form with the zodResolver
+  const loginForm = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  const registerForm = useForm<RegisterValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+    },
+  });
+
+  // Redirect if user is already logged in
   useEffect(() => {
-    setFormError(null);
-  }, [isLogin]);
-
-  const handleLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
-    setFormError(null);
-    try {
-      const { error } = await signIn(values.email, values.password);
-      if (error) {
-        setFormError(error.message);
-      } else {
-        navigate('/');
-      }
-    } catch (error: any) {
-      console.error("Login error:", error);
-      setFormError(error.message || "An unexpected error occurred");
+    if (user) {
+      navigate('/');
     }
+  }, [user, navigate]);
+
+  const onLogin = async (data: LoginValues) => {
+    await signIn(data.email, data.password);
   };
 
-  const handleRegisterSubmit = async (values: z.infer<typeof registerSchema>) => {
-    setFormError(null);
-    try {
-      const { error } = await signUp(values.email, values.password, values.firstName, values.lastName);
-      if (error) {
-        setFormError(error.message);
-      } else {
-        setIsLogin(true);
-      }
-    } catch (error: any) {
-      console.error("Register error:", error);
-      setFormError(error.message || "An unexpected error occurred");
-    }
+  const onRegister = async (data: RegisterValues) => {
+    await signUp(data.email, data.password, data.firstName, data.lastName);
+    setIsLogin(true);
   };
 
-  // Types to match the schema from the form components
-  type loginSchema = {
-    email: string;
-    password: string;
-  };
-
-  type registerSchema = {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    confirmPassword: string;
-  };
-
-  // Redirect to home if already logged in
-  if (user && !loading) {
-    return <Navigate to="/" />;
-  }
+  const toggleAuthMode = () => setIsLogin(!isLogin);
 
   return (
-    <AuthLayout
-      title="HealthHub"
-      subtitle={isLogin ? "Sign in to your account" : "Create your account"}
-      error={formError}
-      footer={
-        <button
-          onClick={() => setIsLogin(!isLogin)}
-          className="text-sm text-health-blue hover:underline"
-        >
-          {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
-        </button>
-      }
-    >
+    <AuthLayout>
       {isLogin ? (
-        <LoginForm onSubmit={handleLoginSubmit} loading={loading} />
+        <LoginForm form={loginForm} onLogin={onLogin} toggleAuthMode={toggleAuthMode} />
       ) : (
-        <RegisterForm onSubmit={handleRegisterSubmit} loading={loading} />
+        <RegisterForm form={registerForm} onRegister={onRegister} toggleAuthMode={toggleAuthMode} />
       )}
     </AuthLayout>
   );
