@@ -113,7 +113,7 @@ const Capture = () => {
     toast({
       title: "Using Simulated Analysis",
       description: "AI analysis unavailable. Using simulated results instead.",
-      variant: "warning",
+      variant: "default", // Fixed error by changing from "warning" to "default"
     });
   };
   
