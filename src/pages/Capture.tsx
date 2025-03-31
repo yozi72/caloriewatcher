@@ -16,29 +16,82 @@ const Capture = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   
-  // This simulates the AI food analysis but in a real app would call the OpenAI API
+  // Generate a simple hash from a string
+  const simpleHash = (str: string): number => {
+    let hash = 0;
+    if (str.length === 0) return hash;
+    for (let i = 0; i < 100; i++) { // Only use a portion of the string for performance
+      const char = str.charCodeAt(i % str.length);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return Math.abs(hash);
+  };
+  
+  // This simulates the AI food analysis but with varying results based on the image
   const analyzeFoodImage = async (imageData: string) => {
     setIsAnalyzing(true);
     
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Mock result with format matching the OpenAI prompt response
+    // Generate a hash from the image data to create consistent but different results
+    const hash = simpleHash(imageData);
+    
+    // Use the hash to create variations in the results
+    const foodTypes = [
+      'Grilled Salmon with Vegetables',
+      'Chicken Caesar Salad',
+      'Vegetable Stir Fry',
+      'Steak with Potatoes',
+      'Quinoa Bowl with Avocado',
+      'Pasta with Tomato Sauce',
+      'Greek Yogurt with Berries'
+    ];
+    
+    const foodIndex = hash % foodTypes.length;
+    
+    // Create variations in nutritional values
+    const baseCalories = 300 + (hash % 400);
+    const baseProtein = 20 + (hash % 30);
+    const baseCarbs = 15 + (hash % 40);
+    const baseFat = 10 + (hash % 25);
+    const baseHealthScore = 65 + (hash % 31); // 65-95 range
+    
+    // Generate varying blood sugar impact
+    const generateBloodSugar = () => {
+      const startLevel = 80 + (hash % 10);
+      const peakOffset = 20 + (hash % 40);
+      
+      return [
+        { time: '0 min', level: startLevel },
+        { time: '30 min', level: startLevel + peakOffset / 2 },
+        { time: '60 min', level: startLevel + peakOffset },
+        { time: '90 min', level: startLevel + (peakOffset / 2) },
+      ];
+    };
+    
+    // Generate food-specific explanation
+    const explanations = [
+      "Rich in omega-3 fatty acids and protein. The vegetables provide essential fiber and vitamins.",
+      "A good source of lean protein. Watch the dressing as it may contain hidden sugars.",
+      "High in fiber and antioxidants from the variety of vegetables.",
+      "High-quality protein but be mindful of the saturated fat content.",
+      "Plant-based protein with healthy fats from the avocado.",
+      "Complex carbohydrates that provide steady energy. Consider whole grain pasta for better nutrition.",
+      "Excellent source of probiotics and calcium. The berries add antioxidants and natural sweetness."
+    ];
+    
     const mockResult: FoodAnalysisResult = {
-      foodName: 'Grilled Salmon with Vegetables',
-      calories: 420,
-      protein: 35,
-      carbs: 18,
-      fat: 22,
-      healthScore: 85, // Updated to 50-100 scale
-      bloodSugarImpact: [
-        { time: '0 min', level: 85 },
-        { time: '30 min', level: 110 },
-        { time: '60 min', level: 125 },
-        { time: '90 min', level: 105 },
-      ],
-      explanation: "Grilled salmon with vegetables is rich in omega-3 fatty acids and fiber. The protein content helps stabilize blood sugar levels.",
-      advice: "Recommend consuming 2-3 times per week for optimal health benefits."
+      foodName: foodTypes[foodIndex],
+      calories: baseCalories,
+      protein: baseProtein,
+      carbs: baseCarbs,
+      fat: baseFat,
+      healthScore: baseHealthScore,
+      bloodSugarImpact: generateBloodSugar(),
+      explanation: explanations[foodIndex],
+      advice: "Consider portion control and pairing with a balanced mix of other food groups."
     };
     
     setAnalysisResult(mockResult);
