@@ -5,9 +5,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 
-import AuthLayout from '@/components/auth/AuthLayout';
-import LoginForm from '@/components/auth/LoginForm';
-import RegisterForm from '@/components/auth/RegisterForm';
+import { AuthLayout } from '@/components/auth/AuthLayout';
+import { LoginForm } from '@/components/auth/LoginForm';
+import { RegisterForm } from '@/components/auth/RegisterForm';
 import { useAuth } from '@/hooks/useAuth';
 
 // Define the schemas for login and register
@@ -29,7 +29,8 @@ type RegisterValues = z.infer<typeof registerSchema>;
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const { signIn, signUp, user } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const { signIn, signUp, user, loading } = useAuth();
   const navigate = useNavigate();
 
   // Initialize the form with the zodResolver
@@ -59,22 +60,55 @@ const Auth = () => {
   }, [user, navigate]);
 
   const onLogin = async (data: LoginValues) => {
-    await signIn(data.email, data.password);
+    setError(null);
+    const { error: loginError } = await signIn(data.email, data.password);
+    if (loginError) {
+      setError(loginError.message);
+    }
   };
 
   const onRegister = async (data: RegisterValues) => {
-    await signUp(data.email, data.password, data.firstName, data.lastName);
-    setIsLogin(true);
+    setError(null);
+    const { error: registerError } = await signUp(data.email, data.password, data.firstName, data.lastName);
+    if (!registerError) {
+      setIsLogin(true);
+    } else {
+      setError(registerError.message);
+    }
   };
 
-  const toggleAuthMode = () => setIsLogin(!isLogin);
+  const toggleAuthMode = () => {
+    setError(null);
+    setIsLogin(!isLogin);
+  };
 
   return (
-    <AuthLayout>
+    <AuthLayout
+      title={isLogin ? "Welcome back" : "Create an account"}
+      subtitle={isLogin ? "Sign in to access your account" : "Register to get started"}
+      error={error}
+      footer={
+        <p className="text-sm text-gray-600">
+          {isLogin ? "Don't have an account? " : "Already have an account? "}
+          <button 
+            onClick={toggleAuthMode}
+            className="text-health-blue hover:underline font-medium"
+          >
+            {isLogin ? "Sign up" : "Sign in"}
+          </button>
+        </p>
+      }
+    >
       {isLogin ? (
-        <LoginForm form={loginForm} onLogin={onLogin} toggleAuthMode={toggleAuthMode} />
+        <LoginForm 
+          onSubmit={onLogin} 
+          loading={loading} 
+        />
       ) : (
-        <RegisterForm form={registerForm} onRegister={onRegister} toggleAuthMode={toggleAuthMode} />
+        <RegisterForm 
+          onSubmit={onRegister}
+          loading={loading}
+        />
       )}
     </AuthLayout>
   );
